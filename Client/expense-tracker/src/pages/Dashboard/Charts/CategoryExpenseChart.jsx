@@ -7,7 +7,7 @@ import {
   Legend,
   Title,
 } from "chart.js";
-import axios from "axios";
+import axiosInstance from '../../../utils/axiosInstance';
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
@@ -19,9 +19,7 @@ const CategoryChart = () => {
       try {
         const user = JSON.parse(localStorage.getItem("user"));
         const userId = user.id;
-        const res = await axios.get("http://localhost:8080/getExpenseByCategory", {
-          params: { userId },
-        });
+        const res = await axiosInstance.get("/getExpenseByCategory", { params: { userId } });
         const categoryData = res.data; 
         const labels = Object.keys(categoryData);
         const values = Object.values(categoryData);
@@ -51,19 +49,24 @@ const CategoryChart = () => {
   }, []);
 
   const options = {
-    responsive: true,
-    plugins: {
-      legend: { position: "bottom" },
-      title: { display: true, text: "Expenses by Category" },
+  responsive: true,
+  plugins: {
+    legend: {
+      position: "bottom",
+      labels: { color: "#888888", font: { size: 12 }, padding: 16 }
     },
-  };
+    title: { display: false },
+  },
+};
 
   if (!chartData) return <p>Loading chart...</p>;
 
   return (
-    <div style={{ height: "300px" }}>
+  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "280px" }}>
+    <div style={{ width: "280px", height: "280px" }}>
       <Doughnut data={chartData} options={options} />
     </div>
+  </div>
   );
 };
 

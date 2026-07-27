@@ -1,33 +1,49 @@
-import { NavLink } from 'react-router-dom'
-import './Sidebar.css';
+import { NavLink, useNavigate } from "react-router-dom";
+import "./Sidebar.css";
 
 function Sidebar() {
-  const menuItems = [
-    { name: "Dashboard", icon: "🏠", path: "/dashboard" },
-    { name: "Transactions", icon: "💳", path: "/transactions" }
-    // { name: "Budgets", icon: "📊", path: "/budgets" },
-    // { name: "Reports", icon: "📈", path: "/reports" },
-  ];
+  const user = JSON.parse(localStorage.getItem("user"));
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
 
   return (
-    <aside className="sidebar">
-      <ul className="sidebar-menu">
-        {menuItems.map((item) => (
-          <li key={item.name}>
-            <NavLink
-              to={item.path}
-              end
-              className={({ isActive }) =>
-                isActive ? "sidebar-link active" : "sidebar-link"
-              }
-            >
-              <i className="icon">{item.icon}</i>
-              {item.name}
-            </NavLink>
-          </li>
-        ))}
-      </ul>
-    </aside>
+    <div className="sidebar">
+      <div className="sidebar-logo">
+        Sort<span>ed</span>
+      </div>
+
+      <nav className="sidebar-nav">
+        <NavLink to="/dashboard" className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}>
+          <i className="ti ti-layout-dashboard" aria-hidden="true"></i>
+          Dashboard
+        </NavLink>
+        <NavLink to="/transactions" className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}>
+          <i className="ti ti-arrows-exchange" aria-hidden="true"></i>
+          Transactions
+        </NavLink>
+      </nav>
+
+      <div className="sidebar-bottom">
+        <NavLink to="/profile" className="sidebar-profile-link">
+          <div className="sidebar-avatar">
+            {user?.name?.charAt(0).toUpperCase()}
+          </div>
+          <div className="sidebar-user">
+            <span className="sidebar-username">{user?.name}</span>
+            <span className="sidebar-email">{user?.email}</span>
+          </div>
+        </NavLink>
+        <button className="logout-btn" onClick={handleLogout} title="Logout">
+          <i className="ti ti-logout" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
   );
 }
+
 export default Sidebar;

@@ -10,37 +10,29 @@ function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     try {
-      const response = await axios.get("http://localhost:8080/getUserByEmail", {
-        params: { email, password },
-      });
-
-      const user = response.data;
-      if (user) {
-        alert("Login successful!");
-        localStorage.setItem("user", JSON.stringify(user));
-        navigate('/dashboard');
-      } else {
-        alert("Invalid email or password!");
-      }
+      const response = await axios.post("http://localhost:8080/login", { email, password });
+      const { token, userId, name, email: userEmail } = response.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify({ id: userId, name, email: userEmail }));
+      navigate('/dashboard');
     } catch (error) {
       console.error("Login error:", error);
-      alert("Something went wrong. Please try again.");
+      alert("Invalid email or password!");
     }
   };
 
   return (
     <div className="auth-container">
       <div className="auth-header">
-        <h1>SmartExpense</h1>
+        <h1>Sort<span style={{ color: "#6366f1" }}>ed</span></h1>
       </div>
 
       <div className="auth-card">
         <h2>Login</h2>
         <form className="auth-form" onSubmit={handleLogin}>
           <div>
-            <label>Email : </label>
+            <label>Email</label>
             <input
               type="email"
               placeholder="Enter your email"
@@ -50,7 +42,7 @@ function Login() {
             />
           </div>
           <div>
-            <label>Password : </label>
+            <label>Password</label>
             <input
               type="password"
               placeholder="Enter your password"
@@ -59,6 +51,16 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+
+          <div style={{ textAlign: "right", marginTop: "-8px" }}>
+            <span
+              onClick={() => navigate("/forgot-password", { state: { email } })}
+              style={{ fontSize: "12px", color: "#6366f1", cursor: "pointer" }}
+            >
+              Forgot password?
+            </span>
+          </div>
+
           <button type="submit">Login</button>
           <button
             type="button"

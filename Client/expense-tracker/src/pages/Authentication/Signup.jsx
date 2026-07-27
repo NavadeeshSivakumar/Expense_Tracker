@@ -39,7 +39,7 @@ function Signup() {
   return (
     <div className="auth-container">
       <div className="auth-header">
-        <h1>SmartExpense</h1>
+        <h1>Sort<span style={{ color: "#6366f1" }}>ed</span></h1>
       </div>
       <div className="auth-card">
         <h2>Create Account</h2>

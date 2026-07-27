@@ -1,6 +1,8 @@
 package com.example.expensetracker.service;
 
 
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +57,39 @@ public class TransactionsService {
         existingTransaction.setNote(transactions.getNote());
 
         return tr.save(existingTransaction);
+    }
+
+    public Double getTotalIncomeByUserId(int userId) {
+    return getTransactionsByUserId(userId).stream()
+        .filter(t -> t.getType().equalsIgnoreCase("income"))
+        .mapToDouble(Transactions::getAmount)
+        .sum();
+    }
+
+    public Double getTotalExpenseByUserId(int userId) {
+        return getTransactionsByUserId(userId).stream()
+            .filter(t -> t.getType().equalsIgnoreCase("expense"))
+            .mapToDouble(Transactions::getAmount)
+            .sum();
+    }
+
+    public Map<Integer, Double> getMonthlyExpenses(int userId) {
+        Map<Integer, Double> monthlyExpenses = new HashMap<>();
+        getTransactionsByUserId(userId).stream()
+            .filter(t -> t.getType().equalsIgnoreCase("expense"))
+            .forEach(t -> {
+                int month = t.getDate().getMonthValue();
+                monthlyExpenses.merge(month, t.getAmount(), Double::sum);
+            });
+        return monthlyExpenses;
+    }
+
+    public Map<String, Double> getExpenseByCategory(int userId) {
+        Map<String, Double> categoryMap = new HashMap<>();
+        getTransactionsByUserId(userId).stream()
+            .filter(t -> t.getType().equalsIgnoreCase("expense"))
+            .forEach(t -> categoryMap.merge(t.getCategory(), t.getAmount(), Double::sum));
+        return categoryMap;
     }
 
 }

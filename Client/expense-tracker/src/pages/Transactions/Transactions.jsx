@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance";
 import "./Transactions.css";
 
 export default function Transactions() {
@@ -8,23 +8,21 @@ export default function Transactions() {
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState(null);
   const user = JSON.parse(localStorage.getItem("user"));
-  const userId = user.id; 
+  const userId = user.id;
+
   const [formData, setFormData] = useState({
     type: "",
     category: "",
     amount: "",
     date: "",
     note: "",
-    user : user,
+    user: user,
   });
-
 
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:8080/getTransactionsByUserId",
-        { params : { userId } }
-      );
+      const res = await axiosInstance.get("/getTransactionsByUserId", { params: { userId } });
       setTransactions(res.data);
     } catch (err) {
       console.error("Error fetching transactions:", err);
@@ -35,7 +33,7 @@ export default function Transactions() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:8080/deleteTransaction/${id}`);
+      await axiosInstance.delete(`/deleteTransaction/${id}`);
       setTransactions(transactions.filter((t) => t.id !== id));
     } catch (err) {
       console.error("Error deleting transaction:", err);
@@ -44,14 +42,7 @@ export default function Transactions() {
 
   const handleAdd = () => {
     setEditData(null);
-    setFormData({
-      type: "",
-      category: "",
-      amount: "",
-      date: "",
-      note: "",
-      user: user,
-    });
+    setFormData({ type: "", category: "", amount: "", date: "", note: "", user });
     setShowModal(true);
   };
 
@@ -70,18 +61,13 @@ export default function Transactions() {
   const handleSave = async (data) => {
     try {
       if (editData) {
-        const res = await axios.put(
-          `http://localhost:8080/editTransaction/${editData.id}`,
-          { ...data, user: { id: userId } }
-        );
-        setTransactions(
-          transactions.map((t) => (t.id === editData.id ? res.data : t))
-        );
+        const res = await axiosInstance.put(`/editTransaction/${editData.id}`, {
+          ...data,
+          user: { id: userId },
+        });
+        setTransactions(transactions.map((t) => (t.id === editData.id ? res.data : t)));
       } else {
-        const res = await axios.post(
-          `http://localhost:8080/addTransaction`,
-          data
-        );
+        const res = await axiosInstance.post("/addTransaction", data);
         setTransactions([...transactions, res.data]);
       }
       setShowModal(false);
@@ -97,47 +83,56 @@ export default function Transactions() {
   return (
     <div className="transactions-container">
       <div className="transactions-header">
-        <h1>Transactions</h1>
+        <div>
+          <h1 className="transactions-title">Transactions</h1>
+          <span className="transactions-subtitle">Your income and expenses</span>
+        </div>
         <button className="add-btn" onClick={handleAdd}>
-         Add Transaction
+          <i className="ti ti-plus" aria-hidden="true"></i> Add transaction
         </button>
       </div>
 
-      <div className="table-wrapper">
+      <div className="transactions-table-wrapper">
         {loading ? (
           <p className="loading-text">Loading...</p>
+        ) : transactions.length === 0 ? (
+          <div className="empty-state">
+            <i className="ti ti-receipt-off" aria-hidden="true"></i>
+            <p>No transactions yet</p>
+            <span>Add your first transaction to get started</span>
+          </div>
         ) : (
           <table className="transactions-table">
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Type</th>
                 <th>Category</th>
-                <th>Amount</th>
                 <th>Note</th>
-                <th className="text-center">Actions</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {transactions.map((tx) => (
                 <tr key={tx.id}>
-                  <td>{tx.date}</td>
-                  <td>{tx.type}</td>
-                  <td>{tx.category}</td>
-                  <td>₹{tx.amount}</td>
-                  <td>{tx.note}</td>
-                  <td className="actions">
-                    <button
-                      className="edit-btn"
-                      onClick={() => handleEdit(tx)}
-                    >
-                      Edit
+                  <td className="td-date">{tx.date}</td>
+                  <td className="td-category">{tx.category}</td>
+                  <td className="td-note">{tx.note || "—"}</td>
+                  <td>
+                    <span className={`type-badge ${tx.type.toLowerCase()}`}>
+                      {tx.type}
+                    </span>
+                  </td>
+                  <td className={`td-amount ${tx.type.toLowerCase()}`}>
+                    {tx.type === "Income" ? "+" : "-"}₹{tx.amount.toLocaleString()}
+                  </td>
+                  <td className="td-actions">
+                    <button className="action-btn edit" onClick={() => handleEdit(tx)}>
+                      <i className="ti ti-edit" aria-hidden="true"></i>
                     </button>
-                    <button
-                      className="delete-btn"
-                      onClick={() => handleDelete(tx.id)}
-                    >
-                      Delete
+                    <button className="action-btn delete" onClick={() => handleDelete(tx.id)}>
+                      <i className="ti ti-trash" aria-hidden="true"></i>
                     </button>
                   </td>
                 </tr>
@@ -148,93 +143,87 @@ export default function Transactions() {
       </div>
 
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>{editData ? "Edit Transaction" : "Add Transaction"}</h2>
-            <form
-              className="modal-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSave(formData);
-              }}
-            >
-              <label>
-                Type:
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{editData ? "Edit transaction" : "Add transaction"}</h2>
+              <button className="modal-close" onClick={() => setShowModal(false)}>
+                <i className="ti ti-x" aria-hidden="true"></i>
+              </button>
+            </div>
+
+            <form className="modal-form" onSubmit={(e) => { e.preventDefault(); handleSave(formData); }}>
+              <div className="form-group">
+                <label>Type</label>
                 <select
-                  name="type"
                   value={formData.type}
-                  onChange={(e) =>
-                    setFormData({ ...formData, type: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                   required
                 >
-                  <option value="">Select</option>
+                  <option value="">Select type</option>
                   <option value="Income">Income</option>
                   <option value="Expense">Expense</option>
                 </select>
-              </label>
+              </div>
 
-              <label>
-                Category:
-                <input
-                  type="text"
-                  name="category"
+              <div className="form-group">
+                <label>Category</label>
+                <select
                   value={formData.category}
-                  onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   required
-                />
-              </label>
+                >
+                  <option value="">Select category</option>
+                  <option value="Salary">Salary</option>
+                  <option value="Freelance">Freelance</option>
+                  <option value="Food">Food</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Health">Health</option>
+                  <option value="Utilities">Utilities</option>
+                  <option value="Rent">Rent</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
 
-              <label>
-                Amount:
+              <div className="form-group">
+                <label>Amount</label>
                 <input
                   type="number"
-                  name="amount"
+                  placeholder="0.00"
                   value={formData.amount}
-                  onChange={(e) =>
-                    setFormData({ ...formData, amount: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                   required
                 />
-              </label>
+              </div>
 
-              <label>
-                Date:
+              <div className="form-group">
+                <label>Date</label>
                 <input
                   type="date"
-                  name="date"
                   value={formData.date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, date: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   required
                 />
-              </label>
+              </div>
 
-              <label>
-                Note:
-                <textarea
-                  name="note"
+              <div className="form-group">
+                <label>Note <span className="optional">(optional)</span></label>
+                <input
+                  type="text"
+                  placeholder="Add a note..."
                   value={formData.note}
-                  onChange={(e) =>
-                    setFormData({ ...formData, note: e.target.value })
-                  }
-                  rows="3"
+                  onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                 />
-              </label>
+              </div>
 
               <div className="modal-actions">
-                <button
-                  type="button"
-                  className="cancel-btn"
-                  onClick={() => setShowModal(false)}
-                >
+                <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="save-btn">
-                  Save
+                <button type="submit" className="btn-save">
+                  {editData ? "Save changes" : "Add transaction"}
                 </button>
               </div>
             </form>
