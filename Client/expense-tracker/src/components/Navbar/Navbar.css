@@ -35,9 +35,6 @@
   font-size: 12px;
   font-weight: 500;
   color: #fff;
-}
-
-.navbar-avatar {
   cursor: pointer;
   transition: opacity 0.15s;
 }

@@ -24,7 +24,7 @@ function ResetPassword() {
       setMessage({ type: "success", text: "Password reset successful — redirecting to login" });
       setTimeout(() => navigate("/"), 2000);
     } catch (error) {
-      setMessage({ type: "error", text: error.response?.data || "Invalid or expired link" });
+      setMessage({ type: "error", text: error.response?.data?.message || "Invalid or expired link" });
     } finally {
       setLoading(false);
     }

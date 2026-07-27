@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from '../../utils/axiosInstance';
 import "./Dashboard.css";
 import MonthlyExpensesChart from "./Charts/MonthlyExpenseChart";
@@ -10,6 +11,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user.id;
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,6 +30,7 @@ function Dashboard() {
   }, []);
 
   const balance = income - expense;
+  const isEmpty = income === 0 && expense === 0;
 
   return (
     <div className="dashboard-main">
@@ -38,6 +41,16 @@ function Dashboard() {
 
       {loading ? (
         <div className="dashboard-loading">Loading...</div>
+      ) : isEmpty ? (
+        <div className="dashboard-empty">
+          <i className="ti ti-chart-bar-off" aria-hidden="true"></i>
+          <h3>No data yet</h3>
+          <p>Add your first transaction to see your financial overview</p>
+          <button className="empty-add-btn" onClick={() => navigate("/transactions")}>
+            <i className="ti ti-plus" aria-hidden="true"></i>
+            Add transaction
+          </button>
+        </div>
       ) : (
         <>
           <div className="stats-grid">

@@ -11,10 +11,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import jakarta.validation.constraints.*;
 
 @Entity
 @Getter
@@ -31,9 +33,17 @@ public class Transactions {
     @JsonBackReference
     private User user;
 
-    private String type;       
-    private String category;   
+    @NotBlank(message = "Type is required")
+    private String type;
+
+    @NotBlank(message = "Category is required")
+    private String category;
+
+    @NotNull(message = "Amount is required")
+    @Positive(message = "Amount must be greater than zero")
     private Double amount;
+
+    @NotNull(message = "Date is required")
     private LocalDate date;
     private String note;
 

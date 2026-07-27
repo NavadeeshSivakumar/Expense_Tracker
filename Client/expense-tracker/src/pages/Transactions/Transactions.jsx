@@ -7,8 +7,17 @@ export default function Transactions() {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState(null);
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [filterMonth, setFilterMonth] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user.id;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterType, filterMonth])
 
   const [formData, setFormData] = useState({
     type: "",
@@ -18,6 +27,27 @@ export default function Transactions() {
     note: "",
     user: user,
   });
+
+  const filteredTransactions = transactions.filter((tx) => {
+    const matchesSearch =
+      tx.category.toLowerCase().includes(search.toLowerCase()) ||
+      (tx.note && tx.note.toLowerCase().includes(search.toLowerCase()));
+
+    const matchesType = filterType ? tx.type === filterType : true;
+
+    const matchesMonth = filterMonth
+      ? tx.date.startsWith(filterMonth)
+      : true;
+
+    return matchesSearch && matchesType && matchesMonth;
+  });
+
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+
+  const paginatedTransactions = filteredTransactions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const fetchTransactions = async () => {
     try {
@@ -36,7 +66,9 @@ export default function Transactions() {
       await axiosInstance.delete(`/deleteTransaction/${id}`);
       setTransactions(transactions.filter((t) => t.id !== id));
     } catch (err) {
-      console.error("Error deleting transaction:", err);
+      // Add this
+      const message = err.response?.data?.message || "Failed to delete transaction";
+      alert(message);
     }
   };
 
@@ -72,8 +104,9 @@ export default function Transactions() {
       }
       setShowModal(false);
     } catch (err) {
-      console.error("Error saving transaction:", err);
-    }
+        const message = err.response?.data?.message || "Something went wrong";
+        alert(message);
+      }
   };
 
   useEffect(() => {
@@ -90,6 +123,71 @@ export default function Transactions() {
         <button className="add-btn" onClick={handleAdd}>
           <i className="ti ti-plus" aria-hidden="true"></i> Add transaction
         </button>
+      </div>
+
+      <div className="filters-bar">
+        <div className="search-wrapper">
+          <i className="ti ti-search" aria-hidden="true"></i>
+          <input
+            type="text"
+            placeholder="Search by category or note..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="filter-group">
+          <button
+            className={`filter-btn ${filterType === "" ? "active" : ""}`}
+            onClick={() => setFilterType("")}
+          >
+            All
+          </button>
+          <button
+            className={`filter-btn ${filterType === "Income" ? "active income" : ""}`}
+            onClick={() => setFilterType("Income")}
+          >
+            Income
+          </button>
+          <button
+            className={`filter-btn ${filterType === "Expense" ? "active expense" : ""}`}
+            onClick={() => setFilterType("Expense")}
+          >
+            Expense
+          </button>
+        </div>
+
+        <select
+          value={filterMonth}
+          onChange={(e) => setFilterMonth(e.target.value)}
+        >
+          <option value="">All months</option>
+          <option value="2026-01">January</option>
+          <option value="2026-02">February</option>
+          <option value="2026-03">March</option>
+          <option value="2026-04">April</option>
+          <option value="2026-05">May</option>
+          <option value="2026-06">June</option>
+          <option value="2026-07">July</option>
+          <option value="2026-08">August</option>
+          <option value="2026-09">September</option>
+          <option value="2026-10">October</option>
+          <option value="2026-11">November</option>
+          <option value="2026-12">December</option>
+        </select>
+
+        {(search || filterType || filterMonth) && (
+          <button
+            className="clear-filters-btn"
+            onClick={() => {
+              setSearch("");
+              setFilterType("");
+              setFilterMonth("");
+            }}
+          >
+            <i className="ti ti-x" aria-hidden="true"></i> Clear
+          </button>
+        )}
       </div>
 
       <div className="transactions-table-wrapper">
@@ -114,33 +212,81 @@ export default function Transactions() {
               </tr>
             </thead>
             <tbody>
-              {transactions.map((tx) => (
-                <tr key={tx.id}>
-                  <td className="td-date">{tx.date}</td>
-                  <td className="td-category">{tx.category}</td>
-                  <td className="td-note">{tx.note || "—"}</td>
-                  <td>
-                    <span className={`type-badge ${tx.type.toLowerCase()}`}>
-                      {tx.type}
-                    </span>
-                  </td>
-                  <td className={`td-amount ${tx.type.toLowerCase()}`}>
-                    {tx.type === "Income" ? "+" : "-"}₹{tx.amount.toLocaleString()}
-                  </td>
-                  <td className="td-actions">
-                    <button className="action-btn edit" onClick={() => handleEdit(tx)}>
-                      <i className="ti ti-edit" aria-hidden="true"></i>
-                    </button>
-                    <button className="action-btn delete" onClick={() => handleDelete(tx.id)}>
-                      <i className="ti ti-trash" aria-hidden="true"></i>
-                    </button>
+              {paginatedTransactions.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)", fontSize: "13px" }}>
+                    No transactions found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                paginatedTransactions.map((tx) => (
+                  <tr key={tx.id}>
+                    <td className="td-date">
+                      {new Date(tx.date).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="td-category">{tx.category}</td>
+                    <td className="td-note">{tx.note || "—"}</td>
+                    <td>
+                      <span className={`type-badge ${tx.type.toLowerCase()}`}>
+                        {tx.type}
+                      </span>
+                    </td>
+                    <td className={`td-amount ${tx.type.toLowerCase()}`}>
+                      {tx.type === "Income" ? "+" : "-"}₹{tx.amount.toLocaleString()}
+                    </td>
+                    <td className="td-actions">
+                      <button className="action-btn edit" onClick={() => handleEdit(tx)}>
+                        <i className="ti ti-edit" aria-hidden="true"></i>
+                      </button>
+                      <button className="action-btn delete" onClick={() => handleDelete(tx.id)}>
+                        <i className="ti ti-trash" aria-hidden="true"></i>
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button
+            className="page-btn"
+            onClick={() => setCurrentPage((p) => p - 1)}
+            disabled={currentPage === 1}
+          >
+            <i className="ti ti-chevron-left" aria-hidden="true"></i>
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              className={`page-btn ${currentPage === page ? "active" : ""}`}
+              onClick={() => setCurrentPage(page)}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            className="page-btn"
+            onClick={() => setCurrentPage((p) => p + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <i className="ti ti-chevron-right" aria-hidden="true"></i>
+          </button>
+
+          <span className="page-info">
+            {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredTransactions.length)} of {filteredTransactions.length}
+          </span>
+        </div>
+      )}
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
@@ -152,7 +298,13 @@ export default function Transactions() {
               </button>
             </div>
 
-            <form className="modal-form" onSubmit={(e) => { e.preventDefault(); handleSave(formData); }}>
+            <form
+              className="modal-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSave(formData);
+              }}
+            >
               <div className="form-group">
                 <label>Type</label>
                 <select

@@ -4,7 +4,6 @@ package com.example.expensetracker.service;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.expensetracker.entity.Transactions;
@@ -18,12 +17,6 @@ public class TransactionsService {
     private TransactionsRepository tr;
     @Autowired
     private UserRepository ur;
-
-
-    public List<Transactions> getAllTransactions()
-    {
-        return tr.findAll();
-    }
 
     public List<Transactions> getTransactionsByUserId(int userId)
     {
@@ -44,19 +37,18 @@ public class TransactionsService {
         tr.deleteById(id);
     }
 
-    public Transactions editTransaction(int id, Transactions transactions)
-    {
-        Optional<Transactions> tempt = tr.findById(id);
-        
-        Transactions existingTransaction = tempt.get();
-        existingTransaction.setUser(transactions.getUser());
-        existingTransaction.setType(transactions.getType());
-        existingTransaction.setCategory(transactions.getCategory());
-        existingTransaction.setAmount(transactions.getAmount());
-        existingTransaction.setDate(transactions.getDate());
-        existingTransaction.setNote(transactions.getNote());
+    public Transactions editTransaction(int id, Transactions transactions) {
+        Transactions existing = tr.findById(id)
+            .orElseThrow(() -> new RuntimeException("Transaction not found"));
 
-        return tr.save(existingTransaction);
+        existing.setUser(transactions.getUser());
+        existing.setType(transactions.getType());
+        existing.setCategory(transactions.getCategory());
+        existing.setAmount(transactions.getAmount());
+        existing.setDate(transactions.getDate());
+        existing.setNote(transactions.getNote());
+
+        return tr.save(existing);
     }
 
     public Double getTotalIncomeByUserId(int userId) {

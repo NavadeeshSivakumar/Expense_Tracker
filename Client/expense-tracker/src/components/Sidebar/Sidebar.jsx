@@ -26,6 +26,11 @@ function Sidebar() {
           <i className="ti ti-arrows-exchange" aria-hidden="true"></i>
           Transactions
         </NavLink>
+        <NavLink to="/ai-advisor" className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}>
+          <i className="ti ti-robot" aria-hidden="true"></i>
+          AI Advisor
+          <span className="nav-pro-badge">PRO</span>
+        </NavLink>
       </nav>
 
       <div className="sidebar-bottom">

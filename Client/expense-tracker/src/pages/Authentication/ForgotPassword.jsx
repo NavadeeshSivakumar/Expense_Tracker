@@ -17,7 +17,7 @@ function ForgotPassword() {
       await axios.post("http://localhost:8080/forgotPassword", { email });
       setMessage({ type: "success", text: "Reset link sent — check your email" });
     } catch (error) {
-      setMessage({ type: "error", text: error.response?.data || "Something went wrong" });
+      setMessage({ type: "error", text: error.response?.data?.message || "Something went wrong" });
     } finally {
       setLoading(false);
     }

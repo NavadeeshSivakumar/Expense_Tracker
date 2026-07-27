@@ -68,7 +68,7 @@ export default function Profile() {
         setNewPassword("");
         setConfirmPassword("");
     } catch (err) {
-        setPasswordMessage({ type: "error", text: err.response?.data || "Failed to change password" });
+        setPasswordMessage({ type: "error", text: err.response?.data?.message || "Failed to change password" });
     } finally {
         setChangingPassword(false);
         setTimeout(() => setPasswordMessage(null), 3000);

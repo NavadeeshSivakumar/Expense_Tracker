@@ -29,10 +29,9 @@ function Signup() {
       alert('Signup successful!');
       navigate('/');
     }
-    catch(error)
-    {
-      console.error(error);
-      alert("Signup failed");
+    catch(error) {
+      const message = error.response?.data?.message || "Signup failed";
+      alert(message);
     }
   };
 
@@ -45,7 +44,7 @@ function Signup() {
         <h2>Create Account</h2>
         <form className="auth-form" onSubmit={handleSignup}>
           <div>
-            <label>Username : </label>
+            <label>Username</label>
             <input
               type="text"
               placeholder="Enter your name"
@@ -55,7 +54,7 @@ function Signup() {
             />
           </div>
           <div>
-            <label>Email : </label>
+            <label>Email</label>
             <input
               type="email"
               placeholder="Enter your email"
@@ -65,7 +64,7 @@ function Signup() {
             />
           </div>
           <div>
-            <label>Password : </label>
+            <label>Password</label>
             <input
               type="password"
               placeholder="Enter your password"
@@ -75,7 +74,7 @@ function Signup() {
             />
           </div>
           <div>
-            <label>Confirm Password : </label>
+            <label>Confirm Password</label>
             <input
               type="password"
               placeholder="Re-enter your password"

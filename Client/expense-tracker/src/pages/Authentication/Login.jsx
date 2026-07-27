@@ -12,13 +12,14 @@ function Login() {
     e.preventDefault();
     try {
       const response = await axios.post("http://localhost:8080/login", { email, password });
-      const { token, userId, name, email: userEmail } = response.data;
+      const { token, userId, name, email: userEmail, plan } = response.data;
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify({ id: userId, name, email: userEmail }));
+      localStorage.setItem("user", JSON.stringify({ id: userId, name, email: userEmail, plan }));
       navigate('/dashboard');
     } catch (error) {
       console.error("Login error:", error);
-      alert("Invalid email or password!");
+      const message = error.response?.data?.message || "Invalid email or password";
+      alert(message);
     }
   };
 

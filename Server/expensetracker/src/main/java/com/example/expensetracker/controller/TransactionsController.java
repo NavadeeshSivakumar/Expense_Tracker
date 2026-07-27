@@ -6,6 +6,9 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.example.expensetracker.entity.Transactions;
 import com.example.expensetracker.service.TransactionsService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,18 +26,13 @@ public class TransactionsController {
     @Autowired
     private TransactionsService ts;
 
-    @GetMapping("/getAllTransactions")
-    public List<Transactions> getAllTransactions() {
-        return ts.getAllTransactions();
-    }
-
     @GetMapping("/getTransactionsByUserId")
     public List<Transactions> getTransactionsByUserId(@RequestParam int userId) {
         return ts.getTransactionsByUserId(userId);
     }
 
     @PostMapping("/addTransaction")
-    public Transactions addTransaction(@RequestBody Transactions transactions) {
+    public Transactions addTransaction(@Valid @RequestBody Transactions transactions) {
         return ts.addTransaction(transactions);
     }
 
@@ -45,7 +43,7 @@ public class TransactionsController {
     }
 
     @PutMapping("/editTransaction/{id}")
-    public Transactions editTransaction(@PathVariable int id, @RequestBody Transactions transactions) {
+    public Transactions editTransaction(@PathVariable int id,@Valid @RequestBody Transactions transactions) {
         return ts.editTransaction(id, transactions);
     }
     

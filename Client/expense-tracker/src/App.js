@@ -8,6 +8,7 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import Profile from "./pages/Profile/Profile";
 import ForgotPassword from "./pages/Authentication/ForgotPassword";
 import ResetPassword from "./pages/Authentication/ResetPassword";
+import AiAdvisor from "./pages/AiAdvisor/AiAdvisor";
 import "./Layout.css";
 
 function Layout() {
@@ -36,6 +37,8 @@ function Layout() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/ai-advisor" element={<AiAdvisor />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </div>

@@ -10,4 +10,5 @@ public class AuthResponse {
     private int userId;
     private String name;
     private String email;
+    private String plan;
 }
