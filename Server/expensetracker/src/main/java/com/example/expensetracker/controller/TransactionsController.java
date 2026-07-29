@@ -6,9 +6,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.example.expensetracker.entity.Transactions;
 import com.example.expensetracker.service.TransactionsService;
-
 import jakarta.validation.Valid;
-
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +21,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 public class TransactionsController {
+
     @Autowired
     private TransactionsService ts;
 

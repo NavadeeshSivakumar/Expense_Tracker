@@ -3,7 +3,6 @@ package com.example.expensetracker.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import com.example.expensetracker.dto.UpdateProfileRequest;
 import com.example.expensetracker.entity.User;
 import com.example.expensetracker.repository.UserRepository;
