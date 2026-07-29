@@ -14,7 +14,7 @@ function Sidebar() {
   return (
     <div className="sidebar">
       <div className="sidebar-logo">
-        Sort<span>ed</span>
+        <img src="/logoside.png" alt="Sorted" className="sidebar-logo-img" />
       </div>
 
       <nav className="sidebar-nav">

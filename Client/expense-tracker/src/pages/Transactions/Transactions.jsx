@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import "./Transactions.css";
+import axios from "axios";
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
@@ -11,6 +12,8 @@ export default function Transactions() {
   const [filterType, setFilterType] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const itemsPerPage = 10;
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user.id;
@@ -27,6 +30,46 @@ export default function Transactions() {
     note: "",
     user: user,
   });
+
+  const handleStatementUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await axios.post(
+        `http://localhost:8000/parse-statement/${userId}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      const parsed = res.data.transactions;
+
+      // Save each transaction to Java backend
+      for (const tx of parsed) {
+        await axiosInstance.post("/addTransaction", {
+          type: tx.type,
+          category: tx.category,
+          amount: tx.amount,
+          date: tx.date,
+          note: tx.note,
+          user: { id: userId }
+        });
+      }
+
+      await fetchTransactions();
+      alert(`Successfully imported ${parsed.length} transactions!`);
+    } catch (err) {
+      const message = err.response?.data?.detail || "Failed to parse statement";
+      alert(message);
+    } finally {
+      setUploading(false);
+      fileInputRef.current.value = "";
+    }
+  };
 
   const filteredTransactions = transactions.filter((tx) => {
     const matchesSearch =
@@ -53,7 +96,7 @@ export default function Transactions() {
     try {
       setLoading(true);
       const res = await axiosInstance.get("/getTransactionsByUserId", { params: { userId } });
-      setTransactions(res.data);
+      setTransactions(res.data.reverse());
     } catch (err) {
       console.error("Error fetching transactions:", err);
     } finally {
@@ -120,9 +163,30 @@ export default function Transactions() {
           <h1 className="transactions-title">Transactions</h1>
           <span className="transactions-subtitle">Your income and expenses</span>
         </div>
-        <button className="add-btn" onClick={handleAdd}>
-          <i className="ti ti-plus" aria-hidden="true"></i> Add transaction
-        </button>
+        <div className="header-actions">
+          {user?.plan === "PRO" && (
+            <>
+              <input
+                type="file"
+                accept=".pdf, .xlsx, .xls"
+                ref={fileInputRef}
+                onChange={handleStatementUpload}
+                style={{ display: "none" }}
+              />
+              <button
+                className="upload-btn"
+                onClick={() => fileInputRef.current.click()}
+                disabled={uploading}
+              >
+                <i className="ti ti-upload" aria-hidden="true"></i>
+                {uploading ? "Importing..." : "Import statement"}
+              </button>
+            </>
+          )}
+          <button className="add-btn" onClick={handleAdd}>
+            <i className="ti ti-plus" aria-hidden="true"></i> Add transaction
+          </button>
+        </div>
       </div>
 
       <div className="filters-bar">

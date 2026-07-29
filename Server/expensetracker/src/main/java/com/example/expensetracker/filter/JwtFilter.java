@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -20,26 +21,35 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Value("${internal.service.token}")
+    private String internalServiceToken;
+
     @Override
-protected void doFilterInternal(HttpServletRequest request,
-                                HttpServletResponse response,
-                                FilterChain filterChain)
-        throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
-    // Allow preflight requests through
-    if (request.getMethod().equals("OPTIONS")) {
-        filterChain.doFilter(request, response);
-        return;
-    }
+        if (request.getMethod().equals("OPTIONS")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-    String path = request.getServletPath();
+        String serviceToken = request.getHeader("X-Service-Token");
+        System.out.println("Received service token: " + serviceToken);
+        System.out.println("Expected service token: " + internalServiceToken);          
+        if (internalServiceToken.equals(serviceToken)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-    // Skip JWT check for login/signup and password options
-    if (path.equals("/login") || path.equals("/addUser") || 
-    path.equals("/forgotPassword") || path.equals("/resetPassword")) {
-        filterChain.doFilter(request, response);
-        return;
-    }
+        String path = request.getServletPath();
+
+        if (path.equals("/login") || path.equals("/addUser") ||
+                path.equals("/forgotPassword") || path.equals("/resetPassword")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String authHeader = request.getHeader("Authorization");
 

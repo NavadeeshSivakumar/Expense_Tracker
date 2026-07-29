@@ -4,11 +4,14 @@ import axiosInstance from '../../utils/axiosInstance';
 import "./Dashboard.css";
 import MonthlyExpensesChart from "./Charts/MonthlyExpenseChart";
 import CategoryChart from "./Charts/CategoryExpenseChart";
+import axios from "axios";
 
 function Dashboard() {
   const [income, setIncome] = useState(0);
   const [expense, setExpense] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [insights, setInsights] = useState([]);
+  const [insightsLoading, setInsightsLoading] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user.id;
   const navigate = useNavigate();
@@ -27,6 +30,20 @@ function Dashboard() {
       }
     };
     fetchData();
+
+    const fetchInsights = async () => {
+      setInsightsLoading(true);
+      try {
+        const res = await axios.get(`http://localhost:8000/insights/${userId}`);
+        setInsights(res.data.insights);
+      } catch (err) {
+        console.error("Error fetching insights:", err);
+      } finally {
+        setInsightsLoading(false);
+      }
+    };
+
+fetchInsights();
   }, []);
 
   const balance = income - expense;
@@ -101,6 +118,31 @@ function Dashboard() {
               </div>
               <CategoryChart />
             </div>
+          </div>
+
+          <div className="insights-card">
+            <div className="insights-header">
+              <div className="insights-title-row">
+                <i className="ti ti-sparkles" aria-hidden="true"></i>
+                <span className="insights-title">AI Insights</span>
+              </div>
+              <span className="insights-badge">Powered by AI</span>
+            </div>
+
+            {insightsLoading ? (
+              <p className="insights-loading">Analysing your finances...</p>
+            ) : insights.length === 0 ? (
+              <p className="insights-empty">Add more transactions to get personalised insights.</p>
+            ) : (
+              <div className="insights-list">
+                {insights.map((insight, index) => (
+                  <div key={index} className="insight-item">
+                    <div className="insight-number">{index + 1}</div>
+                    <p className="insight-text">{insight}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </>
       )}

@@ -1,5 +1,5 @@
 .sidebar {
-  width: 220px;
+  width: 260px; /* was 220px */
   background: var(--bg-secondary);
   border-right: 0.5px solid var(--border);
   display: flex;
@@ -9,16 +9,17 @@
 }
 
 .sidebar-logo {
-  padding: 24px 20px 20px;
-  font-size: 20px;
-  font-weight: 600;
-  color: #fff;
-  letter-spacing: -0.5px;
+  padding: 10px 15px;
   border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
 }
 
-.sidebar-logo span {
-  color: var(--accent);
+.sidebar-logo-img {
+  height: 50px;
+  width: auto;
+  /* object-fit: cover; */
+  /* object-position: center 50%; */
 }
 
 .sidebar-nav {
