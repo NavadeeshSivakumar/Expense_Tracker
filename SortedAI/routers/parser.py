@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from SortedAI.services.pdf.excel_parser import extract_text_from_pdf, extract_text_from_excel
+from services.data_parser import extract_text_from_pdf, extract_text_from_excel
 from services.llm import get_llm
 from langchain_core.messages import HumanMessage, SystemMessage
 import json
