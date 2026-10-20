@@ -4,6 +4,8 @@ package com.example.expensetracker.controller;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.example.expensetracker.dto.BulkTransactionRequest;
 import com.example.expensetracker.entity.Transactions;
 import com.example.expensetracker.service.TransactionsService;
 import jakarta.validation.Valid;
@@ -66,4 +68,8 @@ public class TransactionsController {
         return ts.getExpenseByCategory(userId);
     }
 
+    @PostMapping("/addTransactionsBulk")
+    public List<Transactions> addTransactionsBulk(@RequestBody BulkTransactionRequest request) {
+        return ts.addTransactionsBulk(request);
+    }
 }

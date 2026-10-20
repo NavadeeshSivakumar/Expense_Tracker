@@ -32,44 +32,44 @@ export default function Transactions() {
   });
 
   const handleStatementUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+  setUploading(true);
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
 
-      const res = await axios.post(
-        `http://localhost:8000/parse-statement/${userId}`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+    const res = await axios.post(
+      `http://localhost:8000/parse-statement/${userId}`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
 
-      const parsed = res.data.transactions;
+    const parsed = res.data.transactions;
 
-      // Save each transaction to Java backend
-      for (const tx of parsed) {
-        await axiosInstance.post("/addTransaction", {
-          type: tx.type,
-          category: tx.category,
-          amount: tx.amount,
-          date: tx.date,
-          note: tx.note,
-          user: { id: userId }
-        });
-      }
+    // Single bulk request instead of 529 individual requests
+    await axiosInstance.post("/addTransactionsBulk", {
+      userId: userId,
+      transactions: parsed.map(tx => ({
+        type: tx.type,
+        category: tx.category,
+        amount: tx.amount,
+        date: tx.date,
+        note: tx.note
+      }))
+    });
 
-      await fetchTransactions();
-      alert(`Successfully imported ${parsed.length} transactions!`);
-    } catch (err) {
-      const message = err.response?.data?.detail || "Failed to parse statement";
-      alert(message);
-    } finally {
-      setUploading(false);
-      fileInputRef.current.value = "";
-    }
-  };
+    await fetchTransactions();
+    alert(`Successfully imported ${parsed.length} transactions!`);
+  } catch (err) {
+    const message = err.response?.data?.detail || err.response?.data?.message || "Failed to import statement";
+    alert(message);
+  } finally {
+    setUploading(false);
+    fileInputRef.current.value = "";
+  }
+};
 
   const filteredTransactions = transactions.filter((tx) => {
     const matchesSearch =

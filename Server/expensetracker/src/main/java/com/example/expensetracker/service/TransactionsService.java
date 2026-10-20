@@ -1,10 +1,13 @@
 package com.example.expensetracker.service;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.example.expensetracker.dto.BulkTransactionRequest;
 import com.example.expensetracker.entity.Transactions;
 import com.example.expensetracker.entity.User;
 import com.example.expensetracker.repository.TransactionsRepository;
@@ -83,4 +86,30 @@ public class TransactionsService {
         return categoryMap;
     }
 
+    public List<Transactions> addTransactionsBulk(BulkTransactionRequest request) {
+    User user = ur.findById(request.getUserId())
+        .orElseThrow(() -> new RuntimeException("User not found"));
+
+    System.out.println("Received " + request.getTransactions().size() + " transactions");
+
+    List<Transactions> transactions = request.getTransactions().stream()
+        .map(item -> {
+            Transactions tx = new Transactions();
+            tx.setUser(user);
+            tx.setType(item.getType());
+            tx.setCategory(item.getCategory());
+            tx.setAmount(item.getAmount());
+            tx.setDate(item.getDate());
+            tx.setNote(item.getNote());
+            return tx;
+        })
+        .collect(Collectors.toList());
+
+    System.out.println("Mapped " + transactions.size() + " transactions");
+
+    List<Transactions> saved = tr.saveAll(transactions);
+    System.out.println("Saved " + saved.size() + " transactions");
+
+    return saved;
+    }
 }
